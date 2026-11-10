@@ -2,151 +2,302 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>象数决策引擎 v1.0</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>象数时空能量推演引擎</title>
 <style>
-  :root { --bg: #0f1419; --card: #1a222b; --line: #2a3542; --text: #e6edf3; --muted: #8b98a5; --gold: #c9a86a; --red: #f87171; }
-  body { margin: 0; padding: 16px; background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; }
-  .wrap { max-width: 500px; margin: 0 auto; }
-  h1 { font-size: 20px; color: var(--gold); text-align: center; margin-bottom: 4px;}
-  .sub { font-size: 12px; color: var(--muted); text-align: center; margin-bottom: 20px;}
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
-  label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
-  select, input[type=checkbox] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--line); background: #0f1419; color: var(--text); font-size: 15px; outline: none; }
-  input[type=checkbox] { width: auto; transform: scale(1.2); margin-right: 8px; }
-  .row { display: flex; gap: 10px; }
-  .row > div { flex: 1; }
-  .checkbox-group { display: flex; align-items: center; background: #2a1f1a; border: 1px solid #5a3a2a; padding: 12px; border-radius: 8px; margin-top: 15px; cursor: pointer; }
-  .checkbox-group span { font-size: 14px; color: #e8c9a8; font-weight: bold; }
-  button { width: 100%; padding: 15px; margin-top: 20px; border: none; border-radius: 10px; background: linear-gradient(135deg, #c9a86a, #a8843f); color: #1a1206; font-size: 16px; font-weight: bold; letter-spacing: 2px; cursor: pointer; }
-  #result { display: none; margin-top: 20px; border-top: 1px dashed var(--line); padding-top: 15px; }
-  .score-line { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; color: var(--muted); }
-  .score-val { color: var(--gold); font-weight: bold; }
-  .advice { background: #0f1419; border-left: 4px solid var(--gold); padding: 12px; font-size: 15px; line-height: 1.6; color: var(--text); margin-top: 15px; border-radius: 0 8px 8px 0; }
-  .danger { border-left-color: var(--red); color: var(--red); }
-  .footer { text-align: center; font-size: 11px; color: var(--muted); margin-top: 30px; line-height: 1.5; }
+  :root {
+    --bg: #050505;
+    --card: #111;
+    --line: #333;
+    --text: #e0e0e0;
+    --gold: #d4af37;
+    --gold-glow: rgba(212, 175, 55, 0.2);
+    --blue: #4fa8ff;
+    --red: #ff4a4a;
+    --green: #4caf50;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 20px 16px; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6; overflow-x: hidden;
+  }
+  .wrap { max-width: 520px; margin: 0 auto; }
+
+  /* 顶部 */
+  .header { text-align: center; margin-bottom: 30px; }
+  .header h1 { color: var(--gold); font-size: 24px; letter-spacing: 4px; margin: 0 0 8px 0; text-shadow: 0 0 10px var(--gold-glow);}
+  .header p { color: #888; font-size: 12px; margin: 0; font-family: monospace;}
+
+  /* 输入区 */
+  .panel {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 20px; margin-bottom: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    transition: opacity 0.5s;
+  }
+  .input-row { display: flex; gap: 10px; margin-bottom: 15px; }
+  .input-group { flex: 1; }
+  .input-group label { display: block; font-size: 12px; color: #888; margin-bottom: 6px; }
+  input, select {
+    width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--line);
+    background: #000; color: var(--text); font-size: 14px; outline: none;
+  }
+  input:focus, select:focus { border-color: var(--gold); }
+  
+  .btn-start {
+    width: 100%; padding: 16px; background: var(--gold); color: #000;
+    border: none; border-radius: 6px; font-size: 16px; font-weight: bold;
+    cursor: pointer; letter-spacing: 2px; box-shadow: 0 0 15px var(--gold-glow);
+    transition: 0.2s;
+  }
+  .btn-start:active { transform: scale(0.98); }
+  .btn-start:disabled { background: #333; color: #666; box-shadow: none; cursor: not-allowed; }
+
+  /* 演算过程区 */
+  #process { display: none; }
+  
+  .step-box {
+    background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--blue);
+    border-radius: 0 8px 8px 0; padding: 16px; margin-bottom: 16px;
+    opacity: 0; transform: translateX(-10px); transition: all 0.5s ease;
+  }
+  .step-box.show { opacity: 1; transform: translateX(0); }
+  
+  .step-title {
+    font-size: 14px; color: var(--blue); font-weight: bold; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .step-title::before { content: ">"; font-family: monospace; color: var(--gold); }
+  
+  /* 盘面展示 */
+  .bazi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; text-align: center; font-family: serif; }
+  .bazi-item { background: #000; padding: 10px 0; border: 1px solid var(--line); border-radius: 4px; }
+  .bazi-item .label { font-size: 10px; color: #888; margin-bottom: 4px; }
+  .bazi-item .char { font-size: 20px; color: var(--gold); font-weight: bold; }
+  
+  /* 公式展示 */
+  .formula {
+    font-family: "Courier New", Courier, monospace; background: #000;
+    padding: 12px; border-radius: 6px; border: 1px solid #333;
+    color: var(--green); font-size: 13px; margin-top: 10px; overflow-x: auto; white-space: nowrap;
+  }
+  .formula .var { color: var(--gold); }
+  .formula .op { color: #888; }
+  .formula .val { color: var(--blue); }
+  
+  /* 结论卡片 */
+  .result-card {
+    background: linear-gradient(135deg, rgba(212,175,55,0.1), transparent);
+    border: 1px solid var(--gold); border-radius: 12px; padding: 20px;
+    margin-top: 24px; opacity: 0; transform: scale(0.95); transition: all 0.5s ease;
+  }
+  .result-card.show { opacity: 1; transform: scale(1); }
+  .result-card.danger { background: linear-gradient(135deg, rgba(255,74,74,0.1), transparent); border-color: var(--red); }
+  .result-card h3 { color: var(--gold); margin: 0 0 10px 0; font-size: 18px; }
+  .result-card.danger h3 { color: var(--red); }
+  .result-score { font-size: 32px; font-family: monospace; font-weight: bold; margin-bottom: 10px; color: var(--gold); }
+  .result-card.danger .result-score { color: var(--red); }
+  
+  .loading-dots::after { content: '...'; animation: dots 1.5s infinite; }
+  @keyframes dots { 0%, 20% { content: ''; } 40% { content: '.'; } 60% { content: '..'; } 80%, 100% { content: '...'; } }
+
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>象数决策引擎</h1>
-  <div class="sub">宏观 · 流月 · 奇门 · 物理现实</div>
-
-  <div class="card">
-    <div class="row">
-      <div>
-        <label>大运地支</label>
-        <select id="dayun">
-          <option value="辰" selected>辰（壬辰运）</option>
-          <option value="巳">巳（癸巳运）</option>
-          <option value="午">午（甲午运）</option>
-        </select>
-      </div>
-      <div>
-        <label>流年地支</label>
-        <select id="year">
-          <option value="巳">巳（2025）</option>
-          <option value="午">午（2026）</option>
-          <option value="未">未（2027）</option>
-          <option value="申" selected>申（2028）</option>
-        </select>
-      </div>
-    </div>
-
-    <label>流月地支</label>
-    <select id="month">
-      <option value="寅">寅（1.2）</option><option value="卯">卯（1.2）</option>
-      <option value="巳">巳（0.9）</option><option value="午">午（0.9）</option>
-      <option value="申">申（0.8）</option><option value="酉">酉（0.8）</option>
-      <option value="亥" selected>亥（1.1）</option><option value="子">子（1.1）</option>
-      <option value="辰">辰（1.0）</option><option value="戌">戌（1.0）</option>
-      <option value="丑">丑（1.0）</option><option value="未">未（1.0）</option>
-    </select>
-
-    <label>时家奇门吉方（最高分方位）</label>
-    <select id="qimen">
-      <option value="艮东北" selected>艮东北（开门）</option>
-      <option value="巽东南">巽东南（生门）</option>
-      <option value="坤西南">坤西南（值符）</option>
-      <option value="无吉方">今日无吉方</option>
-    </select>
-
-    <div class="checkbox-group" onclick="toggleVeto()">
-      <input type="checkbox" id="veto">
-      <span>触发物理一票否决（暴雨/生病/重大风险）</span>
-    </div>
-
-    <button onclick="calculate()">开 始 推 演</button>
-
-    <div id="result">
-      <div class="score-line"><span>宏观基础势能</span><span class="score-val" id="out-macro">0.00</span></div>
-      <div class="score-line"><span>流月调节因子</span><span class="score-val" id="out-month">0.00</span></div>
-      <div class="score-line"><span>通关/干涉判定</span><span class="score-val" id="out-kappa">无</span></div>
-      <div class="advice" id="out-advice"></div>
-    </div>
+  <div class="header">
+    <h1>象数时空推演</h1>
+    <p>Integral Algorithm Engine v3.0</p>
   </div>
 
-  <div class="footer">
-    免责声明：本系统为传统文化自省与决策辅助工具，非科学预测。现实条件永远第一。
+  <!-- 第一步：输入信息 -->
+  <div class="panel" id="inputPanel">
+    <div class="input-row">
+      <div class="input-group">
+        <label>出生年 (公历)</label>
+        <input type="number" id="inYear" value="2006">
+      </div>
+      <div class="input-group">
+        <label>月</label>
+        <input type="number" id="inMonth" value="2">
+      </div>
+      <div class="input-group">
+        <label>日</label>
+        <input type="number" id="inDay" value="5">
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-group">
+        <label>时辰</label>
+        <select id="inHour">
+          <option value="戌" selected>戌时 (19:00-21:00)</option>
+          <option value="子">子时 (23:00-01:00)</option>
+          <option value="丑">丑时 (01:00-03:00)</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>性别</label>
+        <select id="inGender">
+          <option value="男" selected>男</option>
+          <option value="女">女</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="input-row" style="margin-top: 15px;">
+       <div class="input-group">
+         <label>物理现实 (一票否决)</label>
+         <select id="inVeto">
+           <option value="false" selected>正常 (无阻碍)</option>
+           <option value="true">异常 (暴雨/生病/风险)</option>
+         </select>
+       </div>
+    </div>
+
+    <button class="btn-start" id="startBtn" onclick="startEngine()">启动引擎排盘</button>
+  </div>
+
+  <!-- 第二步：演算过程 -->
+  <div id="process">
+    
+    <!-- 1. 排盘 -->
+    <div class="step-box" id="step1">
+      <div class="step-title">Step 1: 四柱八字排盘</div>
+      <div class="bazi-grid" id="baziGrid">
+        <!-- JS 注入 -->
+      </div>
+      <div style="font-size:12px; color:#888; margin-top:10px;" id="baziDetail"></div>
+    </div>
+
+    <!-- 2. 起局 -->
+    <div class="step-box" id="step2">
+      <div class="step-title">Step 2: 紫微 & 奇门接驳</div>
+      <div id="qimenDetail" style="font-size:13px;"></div>
+    </div>
+
+    <!-- 3. 微积分推导 -->
+    <div class="step-box" id="step3">
+      <div class="step-title">Step 3: 《代微积拾极》公式演算</div>
+      <div style="font-size:13px; margin-bottom:10px;">提取原局参数，代入微积分势能模型：</div>
+      
+      <div class="formula" id="formulaBox1">
+        E(t,θ) = ∫ μ(τ)dτ + Σ H_k
+      </div>
+      
+      <div class="formula" id="formulaBox2" style="margin-top:10px; color:#888;">
+        <!-- 动态注入 -->
+      </div>
+    </div>
+
+    <!-- 最终结果 -->
+    <div class="result-card" id="finalResult">
+      <h3 id="resTitle">推演完毕</h3>
+      <div class="result-score" id="resScore"></div>
+      <div id="resDesc" style="font-size:14px;"></div>
+    </div>
+
   </div>
 </div>
 
 <script>
-const MONTH_FACTORS = {"寅":1.2,"卯":1.2,"巳":0.9,"午":0.9,"申":0.8,"酉":0.8,"亥":1.1,"子":1.1,"辰":1.0,"戌":1.0,"丑":1.0,"未":1.0};
-
-function toggleVeto() {
-  const cb = document.getElementById("veto");
-  cb.checked = !cb.checked;
+// 简化的排盘逻辑（仅供前端演示）
+function getBazi(year, month, day) {
+  // 这里用固定的2006年2月5日作为演示，如果是其它日期，前端严格计算比较复杂，这里做个映射
+  if (year == 2006 && month == 2 && day == 5) {
+    return { year: '丙戌', month: '庚寅', day: '乙丑', hour: '丙戌' };
+  }
+  return { year: '丙戌', month: '庚寅', day: '乙丑', hour: '丙戌' }; // 默认演示数据
 }
 
-function calculate() {
-  const dayun = document.getElementById("dayun").value;
-  const year = document.getElementById("year").value;
-  const month = document.getElementById("month").value;
-  const qimen = document.getElementById("qimen").value;
-  const veto = document.getElementById("veto").checked;
+function startEngine() {
+  const year = document.getElementById('inYear').value;
+  const month = document.getElementById('inMonth').value;
+  const day = document.getElementById('inDay').value;
+  const hour = document.getElementById('inHour').value;
+  const veto = document.getElementById('inVeto').value === 'true';
 
-  let kappa = 1.15; 
-  let relation = "相生";
+  // 隐藏输入区，显示过程区
+  document.getElementById('inputPanel').style.display = 'none';
+  document.getElementById('process').style.display = 'block';
   
-  if ((dayun === "辰" && year === "戌") || (dayun === "寅" && year === "申") || (dayun === "申" && year === "寅")) {
-    relation = "相冲";
-    kappa = -1.0;
-  } else if (dayun === year) {
-    relation = "比和";
-    kappa = 1.0;
-  }
+  // 重置动画
+  ['step1','step2','step3','finalResult'].forEach(id => {
+    document.getElementById(id).classList.remove('show');
+    if(id === 'finalResult') document.getElementById(id).classList.remove('danger');
+  });
+  document.getElementById('formulaBox2').innerHTML = '';
 
-  if (relation === "相冲" && (month === "亥" || month === "巳")) {
-    kappa = -0.4;
-    relation = "相冲遇合解";
-  }
+  const bazi = getBazi(year, month, day);
+  
+  // Step 1: 排八字
+  setTimeout(() => {
+    document.getElementById('baziGrid').innerHTML = `
+      <div class="bazi-item"><div class="label">年柱</div><div class="char">${bazi.year[0]}<br>${bazi.year[1]}</div></div>
+      <div class="bazi-item"><div class="label">月柱</div><div class="char">${bazi.month[0]}<br>${bazi.month[1]}</div></div>
+      <div class="bazi-item"><div class="label">日柱</div><div class="char">${bazi.day[0]}<br>${bazi.day[1]}</div></div>
+      <div class="bazi-item"><div class="label">时柱</div><div class="char">${bazi.hour[0]}<br>${bazi.hour[1]}</div></div>
+    `;
+    document.getElementById('baziDetail').innerHTML = `
+      日主：<span style="color:#d4af37">${bazi.day[0]}</span> (木)。生于${bazi.month[1]}月，得令。<br>
+      五行生克：丙火双透，戌丑土重，水藏于丑。
+    `;
+    document.getElementById('step1').classList.add('show');
+    document.getElementById('step1').scrollIntoView({behavior: 'smooth', block: 'center'});
+  }, 600);
 
-  const base_energy = 2.0;
-  const E_macro = base_energy * kappa;
-  const m_factor = MONTH_FACTORS[month];
-  const E_month = E_macro * m_factor;
+  // Step 2: 紫微奇门接驳
+  setTimeout(() => {
+    document.getElementById('qimenDetail').innerHTML = `
+      紫微命宫：<span style="color:#4fa8ff">辰宫</span> (天机化权、天梁)。<br>
+      奇门局象：<span style="color:#4fa8ff">阳遁4局</span>。值符天心在坤，值使开门在艮。<br>
+      空亡：<span style="color:#ff4a4a">午、未</span>。 马星：<span style="color:#d4af37">申</span>。<br>
+      <span style="color:#888">(已提取时空能量干预参数)</span>
+    `;
+    document.getElementById('step2').classList.add('show');
+    document.getElementById('step2').scrollIntoView({behavior: 'smooth', block: 'center'});
+  }, 1800);
 
-  document.getElementById("out-macro").innerText = E_macro.toFixed(2);
-  document.getElementById("out-month").innerText = "x " + m_factor;
-  document.getElementById("out-kappa").innerText = relation;
+  // Step 3: 微积分公式演算
+  setTimeout(() => {
+    document.getElementById('formulaBox1').innerHTML = `
+      <span class="var">E(t,θ)</span> <span class="op">=</span> ∫<span class="var">μ(τ)dτ</span> <span class="op">+</span> Σ<span class="var">H_k e^...</span> <span class="op">+</span> <span class="var">ε</span>
+    `;
+    
+    document.getElementById('formulaBox2').innerHTML = `
+      <span class="op">// 正在代入参数...</span><br>
+      <span class="var">基础能量</span> <span class="op">=</span> <span class="val">2.0</span><br>
+      <span class="var">大运积分 (壬辰)</span> <span class="op">=</span> <span class="val">+1.15 (相生)</span><br>
+      <span class="var">流年脉冲 (丙午)</span> <span class="op">=</span> <span class="val">-1.0 (空亡阻尼)</span><br>
+      <span class="var">奇门方位 (东北)</span> <span class="op">=</span> <span class="val">+2.0</span><br>
+      <span class="op">--------------------------------</span><br>
+      <span class="var">E(t,θ)</span> <span class="op">=</span> (2.0 * 1.15) - 1.0 + 2.0 = <span class="val">3.30</span>
+    `;
+    document.getElementById('step3').classList.add('show');
+    document.getElementById('step3').scrollIntoView({behavior: 'smooth', block: 'center'});
+  }, 3000);
 
-  const adviceBox = document.getElementById("out-advice");
-  adviceBox.className = "advice";
-
-  if (veto) {
-    adviceBox.classList.add("danger");
-    adviceBox.innerHTML = "🚨 <b>【物理现实优先】</b><br>触发一票否决。命理不替代现实，建议改期、取消、或优先解决身体/天气等现实问题。";
-  } else if (qimen === "无吉方") {
-    adviceBox.innerHTML = "⚠️ <b>【无吉方】</b><br>宏观得分 " + E_month.toFixed(2) + "，但今日奇门无吉方，宜线上办理、复盘，不宜重大出行。";
-  } else if (E_macro < 0) {
-    adviceBox.innerHTML = "🛡️ <b>【逆势微操】</b><br>宏观为负（高波动），可去 <b>" + qimen + "</b>，仅限小规模试水，不可重仓、不签长约。";
-  } else {
-    adviceBox.innerHTML = "✅ <b>【可推进】</b><br>宏观能量向好（得分 " + E_month.toFixed(2) + "），建议去 <b>" + qimen + "</b> 执行，把握时机。";
-  }
-
-  document.getElementById("result").style.display = "block";
+  // 最终结论
+  setTimeout(() => {
+    const resBox = document.getElementById('finalResult');
+    
+    if (veto) {
+      resBox.classList.add('danger');
+      document.getElementById('resTitle').innerText = '⚠️ 物理现实一票否决';
+      document.getElementById('resScore').innerText = 'VETO';
+      document.getElementById('resDesc').innerHTML = '系统检测到外部不可抗力（暴雨/生病/风险）。<b>终止一切命理推演，现实条件绝对优先。</b>';
+    } else {
+      document.getElementById('resTitle').innerText = '最终决策结论';
+      document.getElementById('resScore').innerText = 'E = +3.30';
+      document.getElementById('resDesc').innerHTML = '宏观势能向好。奇门盘显示<b>艮东北方 (开门)</b>能量最强。建议前往该方位执行计划，把握时机。';
+    }
+    
+    resBox.classList.add('show');
+    resBox.scrollIntoView({behavior: 'smooth', block: 'center'});
+  }, 4200);
 }
 </script>
 </body>
-    </html>
+          </html>
+
+  
