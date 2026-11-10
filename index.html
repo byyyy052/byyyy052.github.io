@@ -1,14 +1,152 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <title>测试成功</title>
-    <style>
-        body { background-color: #000; color: #fff; text-align: center; padding-top: 100px; font-family: sans-serif; }
-        h1 { color: gold; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>象数决策引擎 v1.0</title>
+<style>
+  :root { --bg: #0f1419; --card: #1a222b; --line: #2a3542; --text: #e6edf3; --muted: #8b98a5; --gold: #c9a86a; --red: #f87171; }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; }
+  .wrap { max-width: 500px; margin: 0 auto; }
+  h1 { font-size: 20px; color: var(--gold); text-align: center; margin-bottom: 4px;}
+  .sub { font-size: 12px; color: var(--muted); text-align: center; margin-bottom: 20px;}
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
+  select, input[type=checkbox] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--line); background: #0f1419; color: var(--text); font-size: 15px; outline: none; }
+  input[type=checkbox] { width: auto; transform: scale(1.2); margin-right: 8px; }
+  .row { display: flex; gap: 10px; }
+  .row > div { flex: 1; }
+  .checkbox-group { display: flex; align-items: center; background: #2a1f1a; border: 1px solid #5a3a2a; padding: 12px; border-radius: 8px; margin-top: 15px; cursor: pointer; }
+  .checkbox-group span { font-size: 14px; color: #e8c9a8; font-weight: bold; }
+  button { width: 100%; padding: 15px; margin-top: 20px; border: none; border-radius: 10px; background: linear-gradient(135deg, #c9a86a, #a8843f); color: #1a1206; font-size: 16px; font-weight: bold; letter-spacing: 2px; cursor: pointer; }
+  #result { display: none; margin-top: 20px; border-top: 1px dashed var(--line); padding-top: 15px; }
+  .score-line { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; color: var(--muted); }
+  .score-val { color: var(--gold); font-weight: bold; }
+  .advice { background: #0f1419; border-left: 4px solid var(--gold); padding: 12px; font-size: 15px; line-height: 1.6; color: var(--text); margin-top: 15px; border-radius: 0 8px 8px 0; }
+  .danger { border-left-color: var(--red); color: var(--red); }
+  .footer { text-align: center; font-size: 11px; color: var(--muted); margin-top: 30px; line-height: 1.5; }
+</style>
 </head>
 <body>
-    <h1>🎉 你的象数决策引擎网站，成功上线了！</h1>
-    <p>（接下来只需要把完整代码替换进来即可）</p>
+<div class="wrap">
+  <h1>象数决策引擎</h1>
+  <div class="sub">宏观 · 流月 · 奇门 · 物理现实</div>
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <label>大运地支</label>
+        <select id="dayun">
+          <option value="辰" selected>辰（壬辰运）</option>
+          <option value="巳">巳（癸巳运）</option>
+          <option value="午">午（甲午运）</option>
+        </select>
+      </div>
+      <div>
+        <label>流年地支</label>
+        <select id="year">
+          <option value="巳">巳（2025）</option>
+          <option value="午">午（2026）</option>
+          <option value="未">未（2027）</option>
+          <option value="申" selected>申（2028）</option>
+        </select>
+      </div>
+    </div>
+
+    <label>流月地支</label>
+    <select id="month">
+      <option value="寅">寅（1.2）</option><option value="卯">卯（1.2）</option>
+      <option value="巳">巳（0.9）</option><option value="午">午（0.9）</option>
+      <option value="申">申（0.8）</option><option value="酉">酉（0.8）</option>
+      <option value="亥" selected>亥（1.1）</option><option value="子">子（1.1）</option>
+      <option value="辰">辰（1.0）</option><option value="戌">戌（1.0）</option>
+      <option value="丑">丑（1.0）</option><option value="未">未（1.0）</option>
+    </select>
+
+    <label>时家奇门吉方（最高分方位）</label>
+    <select id="qimen">
+      <option value="艮东北" selected>艮东北（开门）</option>
+      <option value="巽东南">巽东南（生门）</option>
+      <option value="坤西南">坤西南（值符）</option>
+      <option value="无吉方">今日无吉方</option>
+    </select>
+
+    <div class="checkbox-group" onclick="toggleVeto()">
+      <input type="checkbox" id="veto">
+      <span>触发物理一票否决（暴雨/生病/重大风险）</span>
+    </div>
+
+    <button onclick="calculate()">开 始 推 演</button>
+
+    <div id="result">
+      <div class="score-line"><span>宏观基础势能</span><span class="score-val" id="out-macro">0.00</span></div>
+      <div class="score-line"><span>流月调节因子</span><span class="score-val" id="out-month">0.00</span></div>
+      <div class="score-line"><span>通关/干涉判定</span><span class="score-val" id="out-kappa">无</span></div>
+      <div class="advice" id="out-advice"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    免责声明：本系统为传统文化自省与决策辅助工具，非科学预测。现实条件永远第一。
+  </div>
+</div>
+
+<script>
+const MONTH_FACTORS = {"寅":1.2,"卯":1.2,"巳":0.9,"午":0.9,"申":0.8,"酉":0.8,"亥":1.1,"子":1.1,"辰":1.0,"戌":1.0,"丑":1.0,"未":1.0};
+
+function toggleVeto() {
+  const cb = document.getElementById("veto");
+  cb.checked = !cb.checked;
+}
+
+function calculate() {
+  const dayun = document.getElementById("dayun").value;
+  const year = document.getElementById("year").value;
+  const month = document.getElementById("month").value;
+  const qimen = document.getElementById("qimen").value;
+  const veto = document.getElementById("veto").checked;
+
+  let kappa = 1.15; 
+  let relation = "相生";
+  
+  if ((dayun === "辰" && year === "戌") || (dayun === "寅" && year === "申") || (dayun === "申" && year === "寅")) {
+    relation = "相冲";
+    kappa = -1.0;
+  } else if (dayun === year) {
+    relation = "比和";
+    kappa = 1.0;
+  }
+
+  if (relation === "相冲" && (month === "亥" || month === "巳")) {
+    kappa = -0.4;
+    relation = "相冲遇合解";
+  }
+
+  const base_energy = 2.0;
+  const E_macro = base_energy * kappa;
+  const m_factor = MONTH_FACTORS[month];
+  const E_month = E_macro * m_factor;
+
+  document.getElementById("out-macro").innerText = E_macro.toFixed(2);
+  document.getElementById("out-month").innerText = "x " + m_factor;
+  document.getElementById("out-kappa").innerText = relation;
+
+  const adviceBox = document.getElementById("out-advice");
+  adviceBox.className = "advice";
+
+  if (veto) {
+    adviceBox.classList.add("danger");
+    adviceBox.innerHTML = "🚨 <b>【物理现实优先】</b><br>触发一票否决。命理不替代现实，建议改期、取消、或优先解决身体/天气等现实问题。";
+  } else if (qimen === "无吉方") {
+    adviceBox.innerHTML = "⚠️ <b>【无吉方】</b><br>宏观得分 " + E_month.toFixed(2) + "，但今日奇门无吉方，宜线上办理、复盘，不宜重大出行。";
+  } else if (E_macro < 0) {
+    adviceBox.innerHTML = "🛡️ <b>【逆势微操】</b><br>宏观为负（高波动），可去 <b>" + qimen + "</b>，仅限小规模试水，不可重仓、不签长约。";
+  } else {
+    adviceBox.innerHTML = "✅ <b>【可推进】</b><br>宏观能量向好（得分 " + E_month.toFixed(2) + "），建议去 <b>" + qimen + "</b> 执行，把握时机。";
+  }
+
+  document.getElementById("result").style.display = "block";
+}
+</script>
 </body>
-</html>
+    </html>
